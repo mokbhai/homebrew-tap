@@ -1,0 +1,45 @@
+name: Bump KEA
+
+# Points the cask at the newest published KEA release. Runs hourly and on
+# demand; it does nothing when the cask is already current. Lives here rather
+# than in the KEA repo so it can commit with this repo's own token: pushing
+# from KEA's release workflow would need a personal access token stored there.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update Casks/kea.rb to the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$(gh release view --repo mokbhai/KEA --json tagName --jq .tagName)"
+          version="${tag#v}"
+          current="$(sed -n 's/^  version "\(.*\)"$/\1/p' Casks/kea.rb)"
+          if [ "$version" = "$current" ]; then
+            echo "kea is already at $version"
+            exit 0
+          fi
+
+          url="https://github.com/mokbhai/KEA/releases/download/${tag}/KEA_${version}_aarch64.dmg"
+          sha="$(curl -fsSL --retry 5 "$url" | sha256sum | cut -d' ' -f1)"
+
+          sed -i \
+            -e "s/^  version \".*\"$/  version \"$version\"/" \
+            -e "s/^  sha256 \".*\"$/  sha256 \"$sha\"/" \
+            Casks/kea.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "kea $version"
+          git push
