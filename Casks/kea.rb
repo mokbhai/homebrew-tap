@@ -1,6 +1,6 @@
 cask "kea" do
-  version "0.5.4"
-  sha256 "1bd77d55a1f4df09dad8e9a9f061650b4ee3c4470731eb1d5cc26c69e552bc6c"
+  version "0.5.7"
+  sha256 "909a73e8c7d2345e5193e979b8851bb32c38a05f2565713920f17536d467903b"
 
   url "https://github.com/mokbhai/KEA/releases/download/v#{version}/KEA_#{version}_aarch64.dmg"
   name "KEA"
